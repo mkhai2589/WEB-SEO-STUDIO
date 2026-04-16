@@ -1,0 +1,1767 @@
+<!-- index.html – Local SEO Studio 2026 -->
+<!doctype html>
+<html lang="vi" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Local SEO Studio 2026</title>
+
+    <!-- TailwindCSS CDN (dev mode) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Dexie.js -->
+    <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+
+    <!-- vis-network -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/vis-network.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.css"
+    />
+
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+    <!-- EasyMDE -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/easymde/2.18.0/easymde.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/easymde/2.18.0/easymde.min.js"></script>
+
+    <!-- Highlight.js -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+      id="hljs-theme"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- SortableJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+
+    <!-- Tailwind config -->
+    <script>
+      tailwind.config = {
+        darkMode: ['class', '[data-theme="dark"]'],
+        theme: {
+          extend: {
+            colors: {
+              brand: { 50: '#eef2ff', 500: '#6366f1', 600: '#4f46e5', 900: '#1e1b4b' },
+            },
+            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      /* ===== CSS VARIABLES – theme tokens ===== */
+      :root {
+        --sidebar-w: 260px;
+        --right-w: 300px;
+        --header-h: 52px;
+        --transition: 0.22s ease;
+        --radius: 8px;
+        --font: 'Inter', system-ui, sans-serif;
+      }
+
+      /* ===== LIGHT THEME ===== */
+      [data-theme='light'] {
+        --bg-base: #f4f5f7;
+        --bg-surface: #ffffff;
+        --bg-hover: #f0f0f5;
+        --bg-active: #e8e8f5;
+        --border: #e2e2e8;
+        --text-primary: #1a1a2e;
+        --text-secondary: #5c5c7a;
+        --text-muted: #9999bb;
+        --accent: #4f46e5;
+        --accent-light: #eef2ff;
+        --score-red: #ef4444;
+        --score-orange: #f97316;
+        --score-green: #22c55e;
+        --score-blue: #3b82f6;
+      }
+
+      /* ===== DARK THEME (default) ===== */
+      [data-theme='dark'] {
+        --bg-base: #0f0f1a;
+        --bg-surface: #16162a;
+        --bg-hover: #1e1e35;
+        --bg-active: #252542;
+        --border: #2a2a45;
+        --text-primary: #e8e8f5;
+        --text-secondary: #9999cc;
+        --text-muted: #55557a;
+        --accent: #818cf8;
+        --accent-light: #1e1b4b;
+        --score-red: #f87171;
+        --score-orange: #fb923c;
+        --score-green: #4ade80;
+        --score-blue: #60a5fa;
+      }
+
+      /* ===== RESET & BASE ===== */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        font-family: var(--font);
+        font-size: 14px;
+      }
+      body {
+        background: var(--bg-base);
+        color: var(--text-primary);
+      }
+
+      /* ===== SCROLLBAR ===== */
+      ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+      }
+
+      /* ===== APP SHELL ===== */
+      #app {
+        display: grid;
+        grid-template-rows: var(--header-h) 1fr;
+        grid-template-columns: var(--sidebar-w) 1fr var(--right-w);
+        grid-template-areas:
+          'header  header  header'
+          'sidebar main    right';
+        height: 100vh;
+        transition: grid-template-columns var(--transition);
+      }
+
+      /* Sidebar collapsed */
+      #app.sidebar-collapsed {
+        grid-template-columns: 52px 1fr var(--right-w);
+      }
+      /* Right panel collapsed */
+      #app.right-collapsed {
+        grid-template-columns: var(--sidebar-w) 1fr 48px;
+      }
+      /* Both collapsed */
+      #app.sidebar-collapsed.right-collapsed {
+        grid-template-columns: 52px 1fr 48px;
+      }
+      /* Zen mode */
+      #app.zen-mode {
+        grid-template-columns: 0 1fr 0;
+      }
+      #app.zen-mode #sidebar,
+      #app.zen-mode #right-panel {
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* ===== HEADER ===== */
+      #header {
+        grid-area: header;
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+        gap: 12px;
+        z-index: 100;
+        user-select: none;
+      }
+      .header-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--accent);
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .header-logo svg {
+        flex-shrink: 0;
+      }
+      .header-divider {
+        width: 1px;
+        height: 24px;
+        background: var(--border);
+        flex-shrink: 0;
+      }
+      #breadcrumb {
+        font-size: 13px;
+        color: var(--text-secondary);
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #breadcrumb span {
+        color: var(--text-muted);
+        margin: 0 6px;
+      }
+
+      /* Header controls */
+      .hdr-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition:
+          background var(--transition),
+          color var(--transition);
+        flex-shrink: 0;
+      }
+      .hdr-btn:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+      .hdr-btn.active {
+        background: var(--accent-light);
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+
+      .lang-toggle {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .lang-btn {
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        background: transparent;
+        color: var(--text-muted);
+        border: none;
+        transition:
+          background var(--transition),
+          color var(--transition);
+      }
+      .lang-btn.active {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      /* ===== SIDEBAR ===== */
+      #sidebar {
+        grid-area: sidebar;
+        background: var(--bg-surface);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition:
+          width var(--transition),
+          opacity var(--transition);
+      }
+      .sidebar-nav {
+        flex: 1;
+        overflow-y: auto;
+        padding: 8px 6px;
+      }
+      .nav-section-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        padding: 12px 10px 4px;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
+        border-radius: var(--radius);
+        cursor: pointer;
+        color: var(--text-secondary);
+        transition:
+          background var(--transition),
+          color var(--transition);
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .nav-item:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+      .nav-item.active {
+        background: var(--accent-light);
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .nav-item svg {
+        flex-shrink: 0;
+        width: 18px;
+        height: 18px;
+      }
+      .nav-label {
+        font-size: 13.5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .nav-badge {
+        margin-left: auto;
+        font-size: 10px;
+        font-weight: 700;
+        background: var(--accent);
+        color: #fff;
+        border-radius: 10px;
+        padding: 1px 6px;
+        flex-shrink: 0;
+      }
+      .sidebar-footer {
+        padding: 10px 6px;
+        border-top: 1px solid var(--border);
+      }
+
+      /* Collapsed sidebar: hide labels */
+      .sidebar-collapsed .nav-label,
+      .sidebar-collapsed .nav-section-label,
+      .sidebar-collapsed .nav-badge,
+      .sidebar-collapsed .sidebar-footer .nav-label {
+        opacity: 0;
+      }
+
+      /* ===== MAIN CONTENT ===== */
+      #main {
+        grid-area: main;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-base);
+      }
+      #main-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+      }
+
+      /* Module views – show/hide */
+      .module-view {
+        display: none;
+      }
+      .module-view.active {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      /* ===== RIGHT PANEL ===== */
+      #right-panel {
+        grid-area: right;
+        background: var(--bg-surface);
+        border-left: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition: opacity var(--transition);
+      }
+      .right-panel-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text-secondary);
+        flex-shrink: 0;
+      }
+      .right-panel-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+      }
+
+      /* Collapsed right panel */
+      #app.right-collapsed .right-panel-header > *:not(.right-collapse-btn),
+      #app.right-collapsed .right-panel-body {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* ===== SCORE DISPLAY ===== */
+      .seo-score-ring {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 16px 0;
+      }
+      .score-number {
+        font-size: 42px;
+        font-weight: 800;
+        line-height: 1;
+      }
+      .score-label {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+      .score-bar {
+        width: 100%;
+        height: 6px;
+        background: var(--border);
+        border-radius: 3px;
+        margin-top: 10px;
+        overflow: hidden;
+      }
+      .score-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition:
+          width 0.4s ease,
+          background 0.4s ease;
+      }
+
+      /* ===== TOAST ===== */
+      #toast-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+      }
+      .toast {
+        padding: 10px 16px;
+        border-radius: var(--radius);
+        font-size: 13px;
+        font-weight: 500;
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--border);
+        background: var(--bg-surface);
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        animation: slideIn 0.2s ease;
+        pointer-events: auto;
+      }
+      .toast.success {
+        border-color: var(--score-green);
+      }
+      .toast.error {
+        border-color: var(--score-red);
+      }
+      .toast.warning {
+        border-color: var(--score-orange);
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      /* ===== MODAL ===== */
+      #modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        z-index: 1000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      #modal-overlay.open {
+        display: flex;
+      }
+      .modal-box {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        min-width: 380px;
+        max-width: 640px;
+        width: 90vw;
+        max-height: 80vh;
+        overflow-y: auto;
+        position: relative;
+      }
+      .modal-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: var(--text-primary);
+      }
+      .modal-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 1;
+        padding: 4px;
+        border-radius: 4px;
+      }
+      .modal-close:hover {
+        color: var(--text-primary);
+        background: var(--bg-hover);
+      }
+
+      /* ===== ZEN MODE INDICATOR ===== */
+      #zen-indicator {
+        position: fixed;
+        top: 12px;
+        right: 16px;
+        z-index: 200;
+        display: none;
+        align-items: center;
+        gap: 6px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        cursor: pointer;
+      }
+      .zen-mode #zen-indicator {
+        display: flex;
+      }
+
+      /* ===== GLOBAL SEARCH MODAL ===== */
+      #global-search-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 2000;
+        display: none;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 80px;
+      }
+      #global-search-modal.open {
+        display: flex;
+      }
+      .global-search-box {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        width: 600px;
+        max-width: 95vw;
+        overflow: hidden;
+      }
+      .global-search-input {
+        width: 100%;
+        padding: 14px 18px;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 15px;
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border);
+      }
+      .global-search-results {
+        max-height: 360px;
+        overflow-y: auto;
+      }
+      .search-result-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 18px;
+        cursor: pointer;
+        color: var(--text-secondary);
+        transition: background var(--transition);
+      }
+      .search-result-item:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+      .search-result-type {
+        font-size: 10px;
+        padding: 2px 7px;
+        border-radius: 4px;
+        background: var(--accent-light);
+        color: var(--accent);
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      /* ===== PLACEHOLDER VIEWS ===== */
+      .placeholder-view {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        color: var(--text-muted);
+        padding: 40px;
+        text-align: center;
+      }
+      .placeholder-view svg {
+        opacity: 0.3;
+      }
+      .placeholder-view h2 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+      .placeholder-view p {
+        font-size: 13px;
+        max-width: 320px;
+        line-height: 1.6;
+      }
+
+      /* ===== UTILITY CLASSES ===== */
+      .flex-center {
+        display: flex;
+        align-items: center;
+      }
+      .gap-2 {
+        gap: 8px;
+      }
+      .mt-2 {
+        margin-top: 8px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        border-radius: var(--radius);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: var(--bg-surface);
+        color: var(--text-primary);
+        transition:
+          background var(--transition),
+          border-color var(--transition);
+      }
+      .btn:hover {
+        background: var(--bg-hover);
+      }
+      .btn-primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .btn-primary:hover {
+        filter: brightness(1.15);
+      }
+      .input-field {
+        width: 100%;
+        padding: 8px 12px;
+        background: var(--bg-base);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text-primary);
+        font-size: 13px;
+        outline: none;
+        transition: border-color var(--transition);
+      }
+      .input-field:focus {
+        border-color: var(--accent);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <!-- ============================================================
+       HEADER
+  ============================================================ -->
+      <header id="header">
+        <!-- Hamburger toggle sidebar -->
+        <button class="hdr-btn" id="btn-toggle-sidebar" title="Toggle Sidebar (Ctrl+B)">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="2" y="3" width="12" height="1.5" rx="0.75" fill="currentColor" />
+            <rect x="2" y="7.25" width="12" height="1.5" rx="0.75" fill="currentColor" />
+            <rect x="2" y="11.5" width="12" height="1.5" rx="0.75" fill="currentColor" />
+          </svg>
+        </button>
+
+        <!-- Logo -->
+        <a href="#" class="header-logo" id="nav-home">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <rect width="22" height="22" rx="6" fill="var(--accent)" />
+            <path
+              d="M5 16 L8.5 7 L11 12.5 L13.5 9 L17 16"
+              stroke="#fff"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              fill="none"
+            />
+            <circle cx="11" cy="5.5" r="1.5" fill="#fff" opacity="0.8" />
+          </svg>
+          <span
+            >SEO Studio
+            <em style="font-weight: 400; opacity: 0.6; font-style: normal">2026</em></span
+          >
+        </a>
+
+        <div class="header-divider"></div>
+
+        <!-- Breadcrumb / module name -->
+        <div id="breadcrumb">
+          <span id="bc-module">Dashboard</span>
+        </div>
+
+        <!-- Right controls -->
+        <div style="display: flex; align-items: center; gap: 8px; margin-left: auto">
+          <!-- Global search -->
+          <button class="hdr-btn" id="btn-global-search" title="Tìm kiếm toàn cục (Ctrl+K)">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5" />
+              <path
+                d="M10 10 L13 13"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+
+          <!-- Zen Mode -->
+          <button class="hdr-btn" id="btn-zen-mode" title="Zen Mode (Ctrl+Shift+F)">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <path
+                d="M1 1 L4 1 M1 1 L1 4"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+              <path
+                d="M14 1 L11 1 M14 1 L14 4"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+              <path
+                d="M1 14 L4 14 M1 14 L1 11"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+              <path
+                d="M14 14 L11 14 M14 14 L14 11"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+
+          <!-- Language toggle -->
+          <div class="lang-toggle" id="lang-toggle">
+            <button class="lang-btn active" data-lang="vi" onclick="setLang('vi')">VI</button>
+            <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+          </div>
+
+          <!-- Dark mode toggle -->
+          <button class="hdr-btn" id="btn-dark-mode" title="Toggle Dark/Light mode">
+            <!-- Moon icon (dark mode active) -->
+            <svg id="icon-moon" width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <path d="M13 9A6 6 0 0 1 6 2a6 6 0 1 0 7 7z" fill="currentColor" />
+            </svg>
+            <!-- Sun icon (light mode active) -->
+            <svg
+              id="icon-sun"
+              width="15"
+              height="15"
+              viewBox="0 0 15 15"
+              fill="none"
+              style="display: none"
+            >
+              <circle cx="7.5" cy="7.5" r="2.5" fill="currentColor" />
+              <path
+                d="M7.5 1v2M7.5 12v2M1 7.5h2M12 7.5h2M3 3l1.5 1.5M10.5 10.5 12 12M3 12l1.5-1.5M10.5 4.5 12 3"
+                stroke="currentColor"
+                stroke-width="1.4"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+
+          <!-- Right panel toggle -->
+          <button class="hdr-btn" id="btn-toggle-right" title="Toggle Right Panel">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <rect
+                x="1"
+                y="1"
+                width="13"
+                height="13"
+                rx="2"
+                stroke="currentColor"
+                stroke-width="1.3"
+              />
+              <line x1="10" y1="1" x2="10" y2="14" stroke="currentColor" stroke-width="1.3" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- ============================================================
+       SIDEBAR
+  ============================================================ -->
+      <aside id="sidebar">
+        <nav class="sidebar-nav">
+          <div class="nav-section-label" data-i18n="nav.main">CHÍNH</div>
+
+          <a class="nav-item active" data-module="dashboard" href="#">
+            <svg viewBox="0 0 18 18" fill="none">
+              <rect x="1" y="1" width="7" height="7" rx="1.5" fill="currentColor" opacity=".8" />
+              <rect x="10" y="1" width="7" height="7" rx="1.5" fill="currentColor" opacity=".5" />
+              <rect x="1" y="10" width="7" height="7" rx="1.5" fill="currentColor" opacity=".5" />
+              <rect x="10" y="10" width="7" height="7" rx="1.5" fill="currentColor" opacity=".3" />
+            </svg>
+            <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
+          </a>
+
+          <a class="nav-item" data-module="content" href="#">
+            <svg viewBox="0 0 18 18" fill="none">
+              <rect
+                x="1"
+                y="1"
+                width="16"
+                height="16"
+                rx="2"
+                stroke="currentColor"
+                stroke-width="1.3"
+              />
+              <line
+                x1="4"
+                y1="5"
+                x2="14"
+                y2="5"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              />
+              <line
+                x1="4"
+                y1="8"
+                x2="11"
+                y2="8"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              />
+              <line
+                x1="4"
+                y1="11"
+                x2="13"
+                y2="11"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              />
+              <line
+                x1="4"
+                y1="14"
+                x2="9"
+                y2="14"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              />
+            </svg>
+            <span class="nav-label" data-i18n="nav.content">Viết Content SEO</span>
+            <span class="nav-badge" id="badge-content">0</span>
+          </a>
+
+          <a class="nav-item" data-module="topic" href="#">
+            <svg viewBox="0 0 18 18" fill="none">
+              <circle cx="9" cy="4" r="2.5" stroke="currentColor" stroke-width="1.3" />
+              <circle cx="3" cy="14" r="2.5" stroke="currentColor" stroke-width="1.3" />
+              <circle cx="15" cy="14" r="2.5" stroke="currentColor" stroke-width="1.3" />
+              <line x1="9" y1="6.5" x2="3" y2="11.5" stroke="currentColor" stroke-width="1.3" />
+              <line x1="9" y1="6.5" x2="15" y2="11.5" stroke="currentColor" stroke-width="1.3" />
+            </svg>
+            <span class="nav-label" data-i18n="nav.topic">Topic & Cluster</span>
+          </a>
+
+          <a class="nav-item" data-module="graph" href="#">
+            <svg viewBox="0 0 18 18" fill="none">
+              <circle cx="3" cy="9" r="2" stroke="currentColor" stroke-width="1.3" />
+              <circle cx="9" cy="3" r="2" stroke="currentColor" stroke-width="1.3" />
+              <circle cx="15" cy="9" r="2" stroke="currentColor" stroke-width="1.3" />
+              <circle cx="9" cy="15" r="2" stroke="currentColor" stroke-width="1.3" />
+              <line x1="5" y1="9" x2="13" y2="9" stroke="currentColor" stroke-width="1.3" />
+              <line x1="9" y1="5" x2="9" y2="13" stroke="currentColor" stroke-width="1.3" />
+              <line x1="4.5" y1="7.5" x2="7.5" y2="4.5" stroke="currentColor" stroke-width="1.3" />
+            </svg>
+            <span class="nav-label" data-i18n="nav.graph">Internal Link Graph</span>
+          </a>
+
+          <a class="nav-item" data-module="notes" href="#">
+            <svg viewBox="0 0 18 18" fill="none">
+              <path
+                d="M3 3h12v10l-4 4H3V3z"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M11 13v4l4-4h-4z"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linejoin="round"
+              />
+              <line
+                x1="6"
+                y1="7"
+                x2="12"
+                y2="7"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              />
+              <line
+                x1="6"
+                y1="10"
+                x2="10"
+                y2="10"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              />
+            </svg>
+            <span class="nav-label" data-i18n="nav.notes">Ghi Chú</span>
+            <span class="nav-badge" id="badge-notes">0</span>
+          </a>
+
+          <div class="nav-section-label" data-i18n="nav.tools">CÔNG CỤ</div>
+
+          <a class="nav-item" data-module="duplicate" href="#">
+            <svg viewBox="0 0 18 18" fill="none">
+              <rect
+                x="1"
+                y="4"
+                width="11"
+                height="13"
+                rx="1.5"
+                stroke="currentColor"
+                stroke-width="1.3"
+              />
+              <rect
+                x="6"
+                y="1"
+                width="11"
+                height="13"
+                rx="1.5"
+                stroke="currentColor"
+                stroke-width="1.3"
+              />
+            </svg>
+            <span class="nav-label" data-i18n="nav.duplicate">Duplicate Check</span>
+          </a>
+
+          <a class="nav-item" data-module="schema" href="#">
+            <svg viewBox="0 0 18 18" fill="none">
+              <polyline
+                points="5,4 2,9 5,14"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <polyline
+                points="13,4 16,9 13,14"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <line
+                x1="11"
+                y1="3"
+                x2="7"
+                y2="15"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              />
+            </svg>
+            <span class="nav-label" data-i18n="nav.schema">Schema Generator</span>
+          </a>
+        </nav>
+
+        <!-- Sidebar footer: version + backup status -->
+        <div class="sidebar-footer">
+          <div class="nav-item" style="cursor: default; opacity: 0.6">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2" />
+              <path
+                d="M8 5v4l2 2"
+                stroke="currentColor"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              />
+            </svg>
+            <span
+              class="nav-label"
+              id="last-backup-label"
+              style="font-size: 11px; color: var(--text-muted)"
+            >
+              v1.0 · Chưa backup
+            </span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ============================================================
+       MAIN CONTENT AREA
+  ============================================================ -->
+      <main id="main">
+        <div id="main-content">
+          <!-- === MODULE: DASHBOARD === -->
+          <div class="module-view active" id="view-dashboard">
+            <div class="placeholder-view">
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <rect x="4" y="4" width="26" height="26" rx="4" fill="var(--accent)" opacity=".3" />
+                <rect
+                  x="34"
+                  y="4"
+                  width="26"
+                  height="26"
+                  rx="4"
+                  fill="var(--accent)"
+                  opacity=".2"
+                />
+                <rect
+                  x="4"
+                  y="34"
+                  width="26"
+                  height="26"
+                  rx="4"
+                  fill="var(--accent)"
+                  opacity=".2"
+                />
+                <rect
+                  x="34"
+                  y="34"
+                  width="26"
+                  height="26"
+                  rx="4"
+                  fill="var(--accent)"
+                  opacity=".1"
+                />
+              </svg>
+              <h2 data-i18n="dashboard.title">Dashboard</h2>
+              <p data-i18n="dashboard.desc">
+                Tổng quan dự án SEO của bạn. Module này sẽ được tải khi DB sẵn sàng.
+              </p>
+              <button class="btn btn-primary" onclick="App.navigate('content')">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 1v12M1 7h12" stroke="#fff" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <span data-i18n="dashboard.new_content">Tạo bài viết mới</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- === MODULE: CONTENT === -->
+          <div class="module-view" id="view-content">
+            <div class="placeholder-view">
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <rect
+                  x="8"
+                  y="4"
+                  width="48"
+                  height="56"
+                  rx="6"
+                  stroke="var(--accent)"
+                  stroke-width="2"
+                  opacity=".4"
+                />
+                <line
+                  x1="16"
+                  y1="18"
+                  x2="48"
+                  y2="18"
+                  stroke="var(--accent)"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+                <line
+                  x1="16"
+                  y1="26"
+                  x2="40"
+                  y2="26"
+                  stroke="var(--accent)"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+                <line
+                  x1="16"
+                  y1="34"
+                  x2="44"
+                  y2="34"
+                  stroke="var(--accent)"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              <h2 data-i18n="content.title">Viết Content SEO</h2>
+              <p data-i18n="content.desc">
+                Module TinyMCE + SEO Scoring real-time. Đang được tải...
+              </p>
+            </div>
+          </div>
+
+          <!-- === MODULE: TOPIC === -->
+          <div class="module-view" id="view-topic">
+            <div class="placeholder-view">
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <circle
+                  cx="32"
+                  cy="12"
+                  r="8"
+                  stroke="var(--accent)"
+                  stroke-width="2"
+                  opacity=".5"
+                />
+                <circle
+                  cx="12"
+                  cy="52"
+                  r="8"
+                  stroke="var(--accent)"
+                  stroke-width="2"
+                  opacity=".4"
+                />
+                <circle
+                  cx="52"
+                  cy="52"
+                  r="8"
+                  stroke="var(--accent)"
+                  stroke-width="2"
+                  opacity=".4"
+                />
+                <line
+                  x1="32"
+                  y1="20"
+                  x2="12"
+                  y2="44"
+                  stroke="var(--accent)"
+                  stroke-width="1.5"
+                  opacity=".5"
+                />
+                <line
+                  x1="32"
+                  y1="20"
+                  x2="52"
+                  y2="44"
+                  stroke="var(--accent)"
+                  stroke-width="1.5"
+                  opacity=".5"
+                />
+              </svg>
+              <h2 data-i18n="topic.title">Topic & Cluster Management</h2>
+              <p data-i18n="topic.desc">Quản lý Topic Pillar Cluster Entity và Keyword Kanban.</p>
+            </div>
+          </div>
+
+          <!-- === MODULE: GRAPH === -->
+          <div class="module-view" id="view-graph">
+            <div class="placeholder-view">
+              <h2 data-i18n="graph.title">Internal Link Graph</h2>
+              <p data-i18n="graph.desc">
+                Đồ thị vis-network hiển thị toàn bộ mạng lưới internal link.
+              </p>
+            </div>
+          </div>
+
+          <!-- === MODULE: NOTES === -->
+          <div class="module-view" id="view-notes">
+            <div class="placeholder-view">
+              <h2 data-i18n="notes.title">Ghi Chú Đa Dạng</h2>
+              <p data-i18n="notes.desc">
+                Note thường, Case Study, Quy trình. Tích hợp EasyMDE + VSCode.
+              </p>
+            </div>
+          </div>
+
+          <!-- === MODULE: DUPLICATE === -->
+          <div class="module-view" id="view-duplicate">
+            <div class="placeholder-view">
+              <h2>Duplicate Detection</h2>
+              <p>Phát hiện nội dung trùng lặp bằng Shingling k=9 + Cosine Similarity.</p>
+            </div>
+          </div>
+
+          <!-- === MODULE: SCHEMA === -->
+          <div class="module-view" id="view-schema">
+            <div class="placeholder-view">
+              <h2>Schema Generator</h2>
+              <p>Xuất JSON-LD: Article, FAQPage, HowTo, Author, Speakable.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- ============================================================
+       RIGHT PANEL (SEO Score + context)
+  ============================================================ -->
+      <aside id="right-panel">
+        <div class="right-panel-header">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3" />
+            <path d="M7 4v4l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+          </svg>
+          <span data-i18n="panel.seo_score">Điểm SEO</span>
+          <button
+            class="hdr-btn right-collapse-btn"
+            id="btn-toggle-right-inner"
+            style="margin-left: auto; width: 24px; height: 24px"
+            title="Thu gọn panel"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path
+                d="M9 3 L6 6 L9 9"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="right-panel-body">
+          <!-- Score ring -->
+          <div class="seo-score-ring">
+            <div class="score-number" id="seo-score-number" style="color: var(--text-muted)">–</div>
+            <div class="score-label" data-i18n="panel.no_content">Chưa có nội dung</div>
+            <div class="score-bar">
+              <div
+                class="score-bar-fill"
+                id="seo-score-bar"
+                style="width: 0%; background: var(--score-green)"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Placeholder checklist -->
+          <div
+            style="
+              margin-top: 16px;
+              padding: 12px;
+              background: var(--bg-hover);
+              border-radius: var(--radius);
+            "
+          >
+            <p
+              style="font-size: 12px; color: var(--text-muted); text-align: center"
+              data-i18n="panel.open_content"
+            >
+              Mở bài viết để xem phân tích SEO chi tiết
+            </p>
+          </div>
+        </div>
+      </aside>
+    </div>
+    <!-- #app -->
+
+    <!-- ============================================================
+     ZEN MODE EXIT INDICATOR
+============================================================ -->
+    <div id="zen-indicator" onclick="App.exitZenMode()">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path
+          d="M3 1H1v2M9 1h2v2M3 11H1V9M9 11h2V9"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linecap="round"
+        />
+      </svg>
+      <span data-i18n="zen.exit">Thoát Zen (Esc)</span>
+    </div>
+
+    <!-- ============================================================
+     MODAL (generic)
+============================================================ -->
+    <div id="modal-overlay" onclick="if (event.target === this) Modal.close();">
+      <div class="modal-box" id="modal-box">
+        <button class="modal-close" onclick="Modal.close()">✕</button>
+        <div class="modal-title" id="modal-title">Modal</div>
+        <div id="modal-body"></div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+     GLOBAL SEARCH MODAL
+============================================================ -->
+    <div id="global-search-modal" onclick="if (event.target === this) GlobalSearch.close();">
+      <div class="global-search-box">
+        <input
+          class="global-search-input"
+          id="global-search-input"
+          type="search"
+          autocomplete="off"
+          data-i18n-placeholder="search.placeholder"
+          placeholder="Tìm kiếm nội dung, note, topic..."
+        />
+        <div class="global-search-results" id="global-search-results">
+          <div
+            style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px"
+            data-i18n="search.hint"
+          >
+            Nhập để tìm kiếm trong tất cả module
+          </div>
+        </div>
+        <div
+          style="padding: 8px 18px; border-top: 1px solid var(--border); display: flex; gap: 12px"
+        >
+          <span style="font-size: 11px; color: var(--text-muted)">
+            <kbd
+              style="
+                background: var(--bg-hover);
+                padding: 2px 6px;
+                border-radius: 4px;
+                border: 1px solid var(--border);
+              "
+              >↑↓</kbd
+            >
+            <span data-i18n="search.navigate"> điều hướng</span>
+          </span>
+          <span style="font-size: 11px; color: var(--text-muted)">
+            <kbd
+              style="
+                background: var(--bg-hover);
+                padding: 2px 6px;
+                border-radius: 4px;
+                border: 1px solid var(--border);
+              "
+              >Enter</kbd
+            >
+            <span data-i18n="search.open"> mở</span>
+          </span>
+          <span style="font-size: 11px; color: var(--text-muted)">
+            <kbd
+              style="
+                background: var(--bg-hover);
+                padding: 2px 6px;
+                border-radius: 4px;
+                border: 1px solid var(--border);
+              "
+              >Esc</kbd
+            >
+            <span data-i18n="search.close"> đóng</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+     TOAST CONTAINER
+============================================================ -->
+    <div id="toast-container"></div>
+
+    <!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+    <script>
+      /* =====================================================
+   i18n – Ngôn ngữ (VI / EN)
+   Lưu preference vào localStorage (Dexie chưa sẵn sàng ở giai đoạn này)
+===================================================== */
+      const I18N = {
+        vi: {
+          'nav.main': 'CHÍNH',
+          'nav.tools': 'CÔNG CỤ',
+          'nav.dashboard': 'Dashboard',
+          'nav.content': 'Viết Content SEO',
+          'nav.topic': 'Topic & Cluster',
+          'nav.graph': 'Internal Link Graph',
+          'nav.notes': 'Ghi Chú',
+          'nav.duplicate': 'Duplicate Check',
+          'nav.schema': 'Schema Generator',
+          'dashboard.title': 'Dashboard',
+          'dashboard.desc': 'Tổng quan dự án SEO của bạn. Module này sẽ được tải khi DB sẵn sàng.',
+          'dashboard.new_content': 'Tạo bài viết mới',
+          'content.title': 'Viết Content SEO',
+          'content.desc': 'Module TinyMCE + SEO Scoring real-time. Đang được tải...',
+          'topic.title': 'Topic & Cluster Management',
+          'topic.desc': 'Quản lý Topic Pillar Cluster Entity và Keyword Kanban.',
+          'graph.title': 'Internal Link Graph',
+          'graph.desc': 'Đồ thị vis-network hiển thị toàn bộ mạng lưới internal link.',
+          'notes.title': 'Ghi Chú Đa Dạng',
+          'notes.desc': 'Note thường, Case Study, Quy trình. Tích hợp EasyMDE + VSCode.',
+          'panel.seo_score': 'Điểm SEO',
+          'panel.no_content': 'Chưa có nội dung',
+          'panel.open_content': 'Mở bài viết để xem phân tích SEO chi tiết',
+          'zen.exit': 'Thoát Zen (Esc)',
+          'search.placeholder': 'Tìm kiếm nội dung, note, topic...',
+          'search.hint': 'Nhập để tìm kiếm trong tất cả module',
+          'search.navigate': ' điều hướng',
+          'search.open': ' mở',
+          'search.close': ' đóng',
+        },
+        en: {
+          'nav.main': 'MAIN',
+          'nav.tools': 'TOOLS',
+          'nav.dashboard': 'Dashboard',
+          'nav.content': 'Write SEO Content',
+          'nav.topic': 'Topic & Cluster',
+          'nav.graph': 'Internal Link Graph',
+          'nav.notes': 'Notes',
+          'nav.duplicate': 'Duplicate Check',
+          'nav.schema': 'Schema Generator',
+          'dashboard.title': 'Dashboard',
+          'dashboard.desc': 'Your SEO project overview. This module loads when DB is ready.',
+          'dashboard.new_content': 'Create new article',
+          'content.title': 'Write SEO Content',
+          'content.desc': 'TinyMCE + real-time SEO Scoring module. Loading...',
+          'topic.title': 'Topic & Cluster Management',
+          'topic.desc': 'Manage Topics, Pillars, Clusters, Entities and Keyword Kanban.',
+          'graph.title': 'Internal Link Graph',
+          'graph.desc': 'vis-network graph showing the entire internal link network.',
+          'notes.title': 'Multi-type Notes',
+          'notes.desc': 'Regular notes, Case Studies, Processes. EasyMDE + VSCode integration.',
+          'panel.seo_score': 'SEO Score',
+          'panel.no_content': 'No content open',
+          'panel.open_content': 'Open an article to see detailed SEO analysis',
+          'zen.exit': 'Exit Zen (Esc)',
+          'search.placeholder': 'Search content, notes, topics...',
+          'search.hint': 'Type to search across all modules',
+          'search.navigate': ' navigate',
+          'search.open': ' open',
+          'search.close': ' close',
+        },
+      };
+
+      let currentLang = localStorage.getItem('seo-lang') || 'vi';
+
+      function setLang(lang) {
+        currentLang = lang;
+        localStorage.setItem('seo-lang', lang);
+        applyI18n();
+        document.querySelectorAll('.lang-btn').forEach((b) => {
+          b.classList.toggle('active', b.dataset.lang === lang);
+        });
+        document.documentElement.lang = lang;
+      }
+
+      function applyI18n() {
+        const dict = I18N[currentLang] || I18N.vi;
+        document.querySelectorAll('[data-i18n]').forEach((el) => {
+          const key = el.dataset.i18n;
+          if (dict[key]) el.textContent = dict[key];
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+          const key = el.dataset.i18nPlaceholder;
+          if (dict[key]) el.placeholder = dict[key];
+        });
+      }
+
+      /* =====================================================
+   THEME – Dark / Light mode
+===================================================== */
+      const Theme = {
+        current: localStorage.getItem('seo-theme') || 'dark',
+
+        apply(theme) {
+          this.current = theme;
+          document.documentElement.setAttribute('data-theme', theme);
+          localStorage.setItem('seo-theme', theme);
+          document.getElementById('icon-moon').style.display = theme === 'dark' ? '' : 'none';
+          document.getElementById('icon-sun').style.display = theme === 'light' ? '' : 'none';
+          // Highlight.js theme
+          const hljsLink = document.getElementById('hljs-theme');
+          hljsLink.href =
+            theme === 'dark'
+              ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
+              : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+        },
+
+        toggle() {
+          this.apply(this.current === 'dark' ? 'light' : 'dark');
+        },
+      };
+
+      /* =====================================================
+   MODAL
+===================================================== */
+      const Modal = {
+        open(title, bodyHtml, opts = {}) {
+          document.getElementById('modal-title').textContent = title;
+          document.getElementById('modal-body').innerHTML = bodyHtml;
+          const overlay = document.getElementById('modal-overlay');
+          overlay.classList.add('open');
+          if (opts.width) document.getElementById('modal-box').style.maxWidth = opts.width;
+        },
+        close() {
+          document.getElementById('modal-overlay').classList.remove('open');
+        },
+      };
+
+      /* =====================================================
+   TOAST
+===================================================== */
+      const Toast = {
+        show(msg, type = 'info', duration = 3000) {
+          const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+          const el = document.createElement('div');
+          el.className = `toast ${type}`;
+          el.innerHTML = `<span>${icons[type] || 'ℹ'}</span><span>${msg}</span>`;
+          document.getElementById('toast-container').appendChild(el);
+          setTimeout(() => el.remove(), duration);
+        },
+        success: (m, d) => Toast.show(m, 'success', d),
+        error: (m, d) => Toast.show(m, 'error', d),
+        warning: (m, d) => Toast.show(m, 'warning', d),
+      };
+
+      /* =====================================================
+   GLOBAL SEARCH
+===================================================== */
+      const GlobalSearch = {
+        open() {
+          document.getElementById('global-search-modal').classList.add('open');
+          setTimeout(() => document.getElementById('global-search-input').focus(), 50);
+        },
+        close() {
+          document.getElementById('global-search-modal').classList.remove('open');
+          document.getElementById('global-search-input').value = '';
+          document.getElementById('global-search-results').innerHTML =
+            `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px"
+            data-i18n="search.hint">${I18N[currentLang]['search.hint']}</div>`;
+        },
+        async search(query) {
+          if (!query.trim()) {
+            this.close();
+            return;
+          }
+          const results = document.getElementById('global-search-results');
+          results.innerHTML = `<div style="padding:16px 18px;color:var(--text-muted);font-size:13px">Đang tìm...</div>`;
+          // Placeholder – sẽ kết nối Dexie ở module tiếp theo
+          setTimeout(() => {
+            results.innerHTML = `<div style="padding:16px 18px;color:var(--text-muted);font-size:13px">
+        Chức năng tìm kiếm sẽ được kích hoạt sau khi DB khởi tạo xong.
+      </div>`;
+          }, 300);
+        },
+      };
+
+      /* =====================================================
+   APP – Navigation & Module Router
+===================================================== */
+      const App = {
+        currentModule: 'dashboard',
+
+        navigate(module) {
+          // Hide all views
+          document.querySelectorAll('.module-view').forEach((v) => v.classList.remove('active'));
+          document.querySelectorAll('.nav-item').forEach((n) => n.classList.remove('active'));
+
+          // Show target view
+          const view = document.getElementById(`view-${module}`);
+          if (view) {
+            view.classList.add('active');
+          } else {
+            document.getElementById('view-dashboard').classList.add('active');
+          }
+
+          // Activate nav item
+          const navItem = document.querySelector(`.nav-item[data-module="${module}"]`);
+          if (navItem) navItem.classList.add('active');
+
+          // Update breadcrumb
+          const label = navItem ? navItem.querySelector('.nav-label')?.textContent : module;
+          document.getElementById('bc-module').textContent = label || module;
+
+          this.currentModule = module;
+
+          // Show/hide right panel based on module
+          const rightPanel = document.getElementById('right-panel');
+          rightPanel.style.display = module === 'content' ? '' : 'none';
+          document.getElementById('app').style.gridTemplateColumns =
+            module === 'content' ? '' : 'var(--sidebar-w) 1fr 0';
+          if (module !== 'content') {
+            document.getElementById('app').style.gridTemplateAreas =
+              '"header header header" "sidebar main main"';
+          } else {
+            document.getElementById('app').style.gridTemplateAreas =
+              '"header header header" "sidebar main right"';
+          }
+        },
+
+        toggleSidebar() {
+          document.getElementById('app').classList.toggle('sidebar-collapsed');
+        },
+
+        toggleRightPanel() {
+          document.getElementById('app').classList.toggle('right-collapsed');
+        },
+
+        enterZenMode() {
+          document.getElementById('app').classList.add('zen-mode');
+          document.getElementById('btn-zen-mode').classList.add('active');
+          Toast.show(I18N[currentLang]['zen.exit'] || 'Zen Mode – Esc để thoát', 'info', 2000);
+        },
+
+        exitZenMode() {
+          document.getElementById('app').classList.remove('zen-mode');
+          document.getElementById('btn-zen-mode').classList.remove('active');
+        },
+
+        toggleZenMode() {
+          const isZen = document.getElementById('app').classList.contains('zen-mode');
+          isZen ? this.exitZenMode() : this.enterZenMode();
+        },
+
+        updateBadge(module, count) {
+          const badge = document.getElementById(`badge-${module}`);
+          if (badge) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = count > 0 ? '' : 'none';
+          }
+        },
+
+        updateScore(score) {
+          const numEl = document.getElementById('seo-score-number');
+          const barEl = document.getElementById('seo-score-bar');
+          if (score === null || score === undefined) {
+            numEl.textContent = '–';
+            barEl.style.width = '0%';
+            return;
+          }
+          numEl.textContent = Math.round(score);
+          barEl.style.width = score + '%';
+          let color = 'var(--score-red)';
+          if (score >= 90) color = 'var(--score-blue)';
+          else if (score >= 70) color = 'var(--score-green)';
+          else if (score >= 50) color = 'var(--score-orange)';
+          numEl.style.color = color;
+          barEl.style.background = color;
+        },
+      };
+
+      /* =====================================================
+   HOTKEYS
+===================================================== */
+      document.addEventListener('keydown', (e) => {
+        // Ctrl+K – Global search
+        if (e.ctrlKey && e.key === 'k') {
+          e.preventDefault();
+          GlobalSearch.open();
+        }
+        // Ctrl+Shift+F – Zen Mode
+        if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+          e.preventDefault();
+          App.toggleZenMode();
+        }
+        // Ctrl+S – Save (placeholder, sẽ được xử lý trong module content/notes)
+        if (e.ctrlKey && e.key === 's') {
+          e.preventDefault();
+          document.dispatchEvent(new CustomEvent('app:save'));
+        }
+        // Ctrl+E – Export (placeholder)
+        if (e.ctrlKey && e.key === 'e') {
+          e.preventDefault();
+          document.dispatchEvent(new CustomEvent('app:export'));
+        }
+        // Esc – Close modal, exit zen, close search
+        if (e.key === 'Escape') {
+          Modal.close();
+          GlobalSearch.close();
+          App.exitZenMode();
+        }
+      });
+
+      /* =====================================================
+   EVENT LISTENERS – Header buttons
+===================================================== */
+      document
+        .getElementById('btn-toggle-sidebar')
+        .addEventListener('click', () => App.toggleSidebar());
+      document.getElementById('btn-zen-mode').addEventListener('click', () => App.toggleZenMode());
+      document.getElementById('btn-dark-mode').addEventListener('click', () => Theme.toggle());
+      document
+        .getElementById('btn-global-search')
+        .addEventListener('click', () => GlobalSearch.open());
+      document
+        .getElementById('btn-toggle-right')
+        .addEventListener('click', () => App.toggleRightPanel());
+      document
+        .getElementById('btn-toggle-right-inner')
+        .addEventListener('click', () => App.toggleRightPanel());
+
+      /* =====================================================
+   EVENT LISTENERS – Sidebar nav
+===================================================== */
+      document.querySelectorAll('.nav-item[data-module]').forEach((item) => {
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          App.navigate(item.dataset.module);
+        });
+      });
+
+      /* =====================================================
+   EVENT LISTENERS – Global search input
+===================================================== */
+      let searchDebounce;
+      document.getElementById('global-search-input').addEventListener('input', (e) => {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(() => GlobalSearch.search(e.target.value), 250);
+      });
+
+      /* =====================================================
+   INIT
+===================================================== */
+      (function init() {
+        // Apply saved theme
+        Theme.apply(Theme.current);
+
+        // Apply saved language
+        setLang(currentLang);
+
+        // Navigate to default module
+        App.navigate('dashboard');
+
+        // Hide badges initially (will be updated after DB loads)
+        document.querySelectorAll('.nav-badge').forEach((b) => (b.style.display = 'none'));
+
+        console.log(
+          '%c Local SEO Studio 2026 %c v1.0 ',
+          'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px 0 0 4px',
+          'background:#16162a;color:#818cf8;padding:2px 8px;border-radius:0 4px 4px 0'
+        );
+        console.log('DB module chưa load. Tiến hành bước 2: schema-dexie.js');
+      })();
+    </script>
+  </body>
+</html>
